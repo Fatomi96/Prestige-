@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import React from 'react';
 
-import noFiles from '../assets/images/Nodoc.png';
+import noFiles from '../../assets/images/Nodoc.png';
 
 const NoFiles = () => {
   return (
