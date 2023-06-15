@@ -1,0 +1,19 @@
+---
+- hosts: prestige-airport
+  become: no
+  gather_facts: no
+  vars:
+    tags: "{{ image_tag }}"
+    harbor_registry_password: "{{ password }}"
+  tasks:
+    - name: Login to Harbor registry
+      shell: docker login ojtkgprodharb01.mtn.com.ng  -u srinidhi_sn -p "{{ harbor_registry_password }}"
+
+    - name: pull image from harbor
+      shell: "docker pull ojtkgprodharb01.mtn.com.ng/prestige-airport-frontend/prestige-airport-frontend:{{ tags }}"
+
+    - name: docker kill
+      shell: docker stop prod_pre && docker rm prod_pre
+
+    - name: start conatiner
+      shell: docker run -d -p 8080:80 -p 443:443 --name prod_pre -v /export/home/hhgl_girishg/SSL:/etc/ssl/private ojtkgprodharb01.mtn.com.ng/prestige-airport-frontend/prestige-airport-frontend:{{ tags }}
