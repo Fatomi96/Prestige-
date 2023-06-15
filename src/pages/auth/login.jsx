@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { reset, login, } from "../../Redux/feature/auth/authSlice";
 import Image from "next/image";
-import FailureModal from '../components/modal/FailureModal';
+import FailureModal from '../../components/modal/FailureModal';
 
 
 export default function Login() {

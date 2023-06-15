@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
-import Layout from '@/components/layout/Layout'
+import Layout from '../components/layout/Layout'
 import { useDispatch, useSelector } from 'react-redux';
 
 import { useRouter } from "next/router";
 
-import SuccessModal from '@/components/modal/successModal';
+import SuccessModal from '../components/modal/successModal';
 import FailureModal from '../components/modal/FailureModal';
 
-import { addCustomer } from '@/Redux/feature/addCustomerSlice'
+import { addCustomer } from '../Redux/feature/addCustomerSlice'
 
 const PrestigeUser = () => {
 

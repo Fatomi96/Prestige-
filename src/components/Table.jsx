@@ -1,13 +1,13 @@
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import errorImg from "@/assets/images/error.png";
+import errorImg from "../assets/images/error.png";
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCustomerFiles } from '@/Redux/feature/getFileSlice';
-import { openModal, getDeleteId } from '@/Redux/feature/deleteFileSlice';
+import { fetchCustomerFiles } from '../Redux/feature/getFileSlice';
+import { openModal, getDeleteId } from '../Redux/feature/deleteFileSlice';
 import NoFiles from './errors/NoFiles'
 import Error from './errors/Error'
-import SuccessModal from '@/components/modal/successModal';
+import SuccessModal from '../components/modal/successModal';
 import FailureModal from "./modal/FailureModal";
 import axios from "axios";
 

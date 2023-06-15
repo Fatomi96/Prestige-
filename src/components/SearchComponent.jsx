@@ -3,14 +3,14 @@ import React, { useEffect, useState } from 'react'
 import {
   defPage,
   fetchCustomerFiles
-} from "@/Redux/feature/getFileSlice";
+} from "../Redux/feature/getFileSlice";
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
   addSearchData,
   emptySearch,
   searchFiles,
-} from "@/Redux/feature/searchSlice";
+} from "../Redux/feature/searchSlice";
 
 
 function SearchComponent() {
