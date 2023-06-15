@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import React from 'react';
 
-import errorImg from '../assets/images/error.png'; 
+import errorImg from '../../assets/images/error.png'; 
 
 const Error = () => {
   const router = useRouter();
