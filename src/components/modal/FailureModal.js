@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleModal } from '@/Redux/feature/addCustomerSlice';
+// import { toggleModal } from '@/Redux/feature/addCustomerSlice';
 
 const FailureModal = ({ fail, setFail, failMsg, message }) => {
   // console.log('fail', fail);
