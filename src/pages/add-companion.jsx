@@ -1,93 +1,127 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import Layout from '@/components/layout/Layout'
 import { useDispatch, useSelector } from 'react-redux';
-
-import SuccessModal from '@/components/modal/successModal';
-import FailureModal from '../components/modal/FailureModal';
-
-import { editCustomer } from '@/Redux/feature/editCustomerSlice';
-import { fetchSingleCustomer } from '@/Redux/feature/singleCustomerSlice';
+import AuthGuard from '@/components/guards/AuthGuard'
 
 import { useRouter } from "next/router";
 
-const EditCustomer = () => {
+import SuccessModal from '@/components/modal/successModal';
+import FailureModal from '../components/modal/FailureModal';
+import Image from 'next/image';
 
-  const singleCustomer = useSelector((state) => state.single.singleCustomer);
 
-  const router = useRouter();
+const AddCompanion = () => {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
 
   const [loading, setLoading] = useState(false);
-  const [send, setSend] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [fail, setFail] = useState(false);
 
-  const dispatch = useDispatch();
+  const router = useRouter();
 
-  const cusId = router.query.customerId;
-  useEffect(() => {
-    if (cusId !== undefined) {
-      console.log('route', cusId)
-      dispatch(fetchSingleCustomer(cusId));
-    }
-  }, [dispatch, cusId]);
+  const onSubmit = async () => {
+    setLoading(true)
+    const url = `../api/companions/add`;
 
-  useEffect(() => {
-    setFirstName(singleCustomer?.fname);
-    setLastName(singleCustomer?.lname);
-    setEmail(singleCustomer?.email);
-    setPhone(singleCustomer?.telephone);
-  }, [singleCustomer]);
-
-  const handleSubmit = (cusId, payload) => {
-  payload.cusId = cusId, 
-    console.log({handleSubmit: payload})
-    dispatch(editCustomer({ payload }));
-  }
-
-  const submitHandler = (e) => {
-    console.log({submitHandler: cusId})
-    e.preventDefault();
-    let payload = {
-      fname: firstName,
-      lname: lastName,
-      email: email,
-      telephone: phone,
+    const data = {
+      firstName,
+      lastName,
+      phoneNumber: phone,
+      memberId: router.query.uuid
     };
+
+    const options ={
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data)
+    } 
+  
     try {
-      setLoading(true)
-      setSend(true)
+      let response = await fetch(url, options);
+      response = await response.json()
+      console.log(response)
+      
+      if(response.success){
+        setSuccess(true)
+        setFirstName('')
+        setLastName('')
+        setPhone('')
+        
+      }
+      else{
+        setFail({
+          open:true,
+          message:'add companion',
+          fullMsg:response.error
+        })
+      }
       setLoading(false)
-      handleSubmit(cusId, payload)
-    } catch (error) {
-      setFail(true)
+     
     }
-  }
+    catch(err){
+      console.log(err)
+      alert(err.message) 
+    }
+  };
+
+
+
+  const isInvalid = !firstName || !lastName || !phone;
 
   return (
-    <Layout>
-      <SuccessModal
+    <AuthGuard>
+    <FailureModal fail={fail.open} setFail={setFail} failMsg={fail.fullMsg} message={fail.message}/>
+    {success && <div
+        className="absolute z-[9999999] flex h-screen w-screen items-center justify-center bg-gray-700  bg-opacity-25"
+        
+      >
+        <div className=" min-w-[20rem] flex flex-col rounded-md bg-white px-5 py-8 text-center">
+        <Image
+          src='/images/checked.png'
+          alt="Image"
+          className="self-center"
+          width={50}
+          height={50}
+      />
+          <h4 className="font-mtnwork font-bold">
+            Companion admitted!
+          </h4>
+          <button className='p-3 text-sm text-black/80
+     rounded-md font-bold bg-[#fef2c0] mt-3 text-center'>Admit another companion</button>
+
+<button onClick={()=>{
+  setSuccess(false)
+  router.push('/')
+}
+}
+  className='p-2 border-2 text-sm text-black/80
+     rounded-md font-bold mt-3 text-center'>Close</button>
+        </div>
+      </div> }
+
+
+     <Layout>
+      
+      {/* <SuccessModal
         send={send}
         setSend={setSend}
-        message='updated customer'
+        message='uploaded new customer'
       />
       <FailureModal
         fail={fail}
         setFail={setFail}
-        message='update customer'
-      />
-      <div className="lg:py-32 lg:px-80 p-5 relative">
-        <div onClick={() => router.push(`/Prestige-Customers`)} className='flex items-center justify-center mb-5 rounded-lg border border-[#D0D5DD] w-20 p-2 cursor-pointer'>
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12.8332 6.99999H1.1665M1.1665 6.99999L6.99984 12.8333M1.1665 6.99999L6.99984 1.16666" stroke="#344054" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className='pl-3 text-sm'>Back</span>
-        </div>
-        <div className='text-[24px] font-bold mb-4'>Update a prestige user</div>
-        <form onSubmit={submitHandler} className='border p-5 rounded-md w-full'>
+        message='upload new customer'
+      /> */}
+      <section className='mt-10 flex justify-center'>
+      <div className="relative min-w-[43rem] mt-10">
+        <div className='text-[24px] font-bold mb-4'>Add Companion</div>
+        <form className='border p-5 rounded-md w-full'>
 
           <div className='pb-3'>
             <label className='text-[14px]'>First name</label>
@@ -116,19 +150,6 @@ const EditCustomer = () => {
           </div>
 
           <div className='pb-3'>
-            <label className='text-[14px]'>Email</label>
-            <input
-              required
-              className='border w-full py-2 px-4 rounded-md bg-[#F6F6F6]'
-              type="email"
-              name="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className='pb-3'>
             <label className='text-[14px]'>Phone number</label>
             <input
               required
@@ -142,16 +163,17 @@ const EditCustomer = () => {
           </div>
 
           <button
-            className={`py-2 px-10 text-[12px] rounded-md ${!firstName || !lastName || !email || !phone
+            disabled={isInvalid || loading}
+            className={`py-2 px-10 text-[14px] font-bold rounded-md ${isInvalid
               ? 'cursor-not-allowed bg-[#F6ECD0]'
               : loading === true
-                ? 'cursor-wait bg-[#F6ECD0]'
+                ? 'cursor-wait bg-[#FBCC01]'
                 : 'bg-[#FBCC04]'
               }`}
-            // onClick={(e) => {
-            //   e.preventDefault();
-            //   onSubmit()
-            // }}
+            onClick={(e) => {
+              e.preventDefault();
+              onSubmit();
+            }}
             type='submit'
           >
             {loading ? (
@@ -172,14 +194,18 @@ const EditCustomer = () => {
                 />
               </svg>
             ) : (
-              'Update Customer'
+              'Admit companion'
             )}
           </button>
 
         </form>
       </div>
+      </section>
+      
     </Layout>
+    </AuthGuard>
+   
   )
 }
 
-export default EditCustomer
+export default AddCompanion

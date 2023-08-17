@@ -1,9 +1,9 @@
-import { mysql, dbConfig } from "@/lib/mysql"
+import { connectionPool } from "@/lib/mysql"
 import { getCustomer, verifyToken } from "@/lib/utilities"
 import dayjs from "dayjs"
 
 export default async function handler(req, res) {
-  const connection = await mysql.createPool(dbConfig)
+  const connection = await connectionPool.getConnection();
   const auth = await verifyToken(req, res, connection)
   if (!auth.success)
     return res.status(401).json({ success: false, error: auth.error })
@@ -42,6 +42,8 @@ export default async function handler(req, res) {
           [now, customer.uuid]
         )
         await connection.commit()
+
+        connection.release();
 
         return res.status(201).json({
           success: true,

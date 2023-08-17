@@ -1,11 +1,10 @@
-import { mysql, dbConfig } from "@/lib/mysql"
+import { connectionPool } from "@/lib/mysql"
 import { v4 as uuidv4 } from "uuid"
 import dayjs from "dayjs"
 
 export default async function handler(req, res) {
   const now = dayjs().format("YYYY-MM-DD HH:mm:ss")
-  const connection = await mysql.createPool(dbConfig)
-
+  const connection = await connectionPool.getConnection();
   try {
     const [results] = await connection.execute(
       `SELECT id FROM  prestigecustomers WHERE uuid = '' LIMIT 100000`
@@ -38,7 +37,4 @@ export default async function handler(req, res) {
       .status(400)
       .json({ success: false, data: null, error: error.message })
   }
-  return res
-    .status(400)
-    .json({ success: false, data: null, error: "No request was recieved" })
 }

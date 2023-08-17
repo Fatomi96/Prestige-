@@ -1,6 +1,9 @@
-import bcrypt from "bcrypt"
-import jwt from "jsonwebtoken"
-import { getCookie, hasCookie, deleteCookie } from "cookies-next"
+import axios from 'axios';
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { connectionPool } from './mysql';
+import logger from "@/lib/logger";
+import { getCookie, hasCookie, deleteCookie } from "cookies-next";
 
 export const validateEmail = (email) => {
   return email.match(
@@ -42,12 +45,24 @@ export async function comparePassword(plaintextPassword, hash) {
 }
 export const getCustomer = async (uuid, connection) => {
   const [customer] = await connection.execute(
-    `SELECT uuid, fname, lname, email, telephone, band, lastvisit, created_at, created_by, updated_at, updated_by FROM customers WHERE uuid = ? OR  telephone = ? OR  email = ?`,
-    [uuid, uuid, uuid]
-  )
+    `SELECT uuid, fname, lname, email, telephone, band, checkin, checkout, created_at, created_by, updated_at, updated_by FROM customers WHERE isDeleted = ? AND (uuid = ? OR telephone = ? OR email = ?)`,
+    [false, uuid, uuid, uuid]
+  );
+
   if (customer.length > 0) return customer[0]
   return null
 }
+
+export const getCompanion = async (uuid, connection) => {
+  const [companion] = await connection.execute(
+    `SELECT co.id, co.uuid, co.firstname, co.lastname, co.telephone, co.checkin, co.checkout, co.created_at, co.updated_at, co.customerId AS guest_uuid, CONCAT(c.fname, ' ', c.lname) AS guest_name FROM companions co left join customers c on c.uuid = co.customerId WHERE co.isDeleted = ? AND (co.uuid = ? OR co.telephone = ? OR co.customerId = ?)`,
+    [false, uuid, uuid, uuid]
+  );
+
+  if (companion.length > 0) return companion[0]
+  return null
+}
+
 export const getUser = async (uuid, connection) => {
   const [user] = await connection.execute(
     `SELECT * FROM users WHERE uuid = ? OR LCASE(username) = ? OR telephone = ? OR  LCASE(email) = ?`,
@@ -58,13 +73,23 @@ export const getUser = async (uuid, connection) => {
   }
   return null
 }
+
 export const msisdn = (telephone) => {
-  if (!telephone) return null
-  if (telephone.startsWith("234")) return telephone
-  if (telephone.startsWith("0")) return `234${telephone.substring(1)}` // 08090956548
-  if (telephone.startsWith("+")) return telephone.replace("+", "") // +2348090956548
-  return `234${telephone}` // 8090956548
+  if (!telephone) return null;
+
+  if (typeof telephone !== "string") {
+    telephone = telephone.toString();
+  }
+
+  if (telephone.startsWith("234")) return telephone;
+
+  if (telephone.startsWith("0")) return `234${telephone.substring(1)}`;
+
+  if (telephone.startsWith("+")) return telephone.replace("+", "");
+
+  return `234${telephone}`
 }
+
 export async function verifyToken(req, res, connection) {
   try {
     if (!hasCookie("authorization", { req, res }))
@@ -104,7 +129,7 @@ export async function verifyToken(req, res, connection) {
         error: "EXPIRED_TOKEN",
       }
     }
-    if (!connection) connection = await mysql.createPool(dbConfig)
+    if (!connection) connection = await connectionPool.getConnection()
     const User = await getUser(decodedUser.uuid, connection)
     if (!User.uuid) {
       if (hasCookie("authorization", { req, res }))
@@ -139,22 +164,89 @@ export async function verifyToken(req, res, connection) {
     }
   }
 }
+
 export const isArray = (data) => {
   return Array.isArray(data)
 }
+
 export const isObject = (data) => {
   return typeof data === "object" && data !== null && !Array.isArray(data)
 }
+
 export const isString = (data) => {
   return typeof data === "string"
 }
+
 export const isNumber = (data) => {
   return typeof data === "number"
 }
+
 export const isBoolean = (data) => {
   return typeof data === "boolean"
 }
+
 export const isEmpty = (obj) => {
   if (!obj || typeof obj === "undefined") return true
   return Object.keys(obj).length === 0
+}
+
+export const smsSender = async (data) => {
+  const smsUrl = 'https://preprod-nigeria.api.mtn.com/v3/sms/messages/sms/outbound'
+  const SMS_ENDPOINT = smsUrl;
+  const { message } = data;
+
+  let receiverAddress = data?.receiverAddress;
+
+  if (!receiverAddress?.startsWith('234')) {
+    receiverAddress = `234${receiverAddress?.slice(1)}`;
+  }
+
+  const requestData = {
+    senderAddress: 'MTN PRESTIGE',
+    receiverAddress: [receiverAddress],
+    message,
+    keyword: 'Aftersales',
+    clientCorrelatorId:
+      process.env.SMS_TRANSACTION_ID ||
+      'a3ae03d0-2101-43e3-b6a6-89fb219c1c66',
+    requestDeliveryReceipt: false,
+    serviceCode: process.env.SMS_SERVICE_CODE || '11221',
+  }
+
+  try {
+    const response = await axios.post(SMS_ENDPOINT, requestData, {
+      headers: {
+        Accept: 'application/json',
+        'x-api-key':
+          process.env.MADAPI_SMS_X_API_KEY ||
+          'dUv1UWNUt2nuZDCwPAMn3E7NjyYndyWh',
+      },
+    })
+
+    return {
+      message: 'SMS sent successfully!',
+      data: response?.data || {},
+    }
+  } catch (error) {
+    logger.error(`[SMS service]: ${error}`, { method: this.req.method, url: this.req.url, status: 500 });
+    return res
+      .status(400)
+      .json({ success: false, data: null, error: error.message })
+  }
+}
+
+export const generateRandomNumber = () => {
+  return Math.floor(100000 + Math.random() * 900000);
+}
+
+export const validatePhoneNumber = (phoneNumber) => {
+  if (phoneNumber.startsWith("234") && phoneNumber.length == 13) {
+    return true;
+  }  
+  
+  if (phoneNumber.startsWith("0") && phoneNumber.length == 11) {
+    return true;
+  }  
+    
+  return false;
 }

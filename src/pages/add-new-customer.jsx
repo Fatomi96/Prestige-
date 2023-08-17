@@ -1,13 +1,14 @@
 import React, { useState } from 'react'
-import Layout from '../components/layout/Layout'
+import Layout from '@/components/layout/Layout'
 import { useDispatch, useSelector } from 'react-redux';
+import AuthGuard from '@/components/guards/AuthGuard'
 
 import { useRouter } from "next/router";
 
-import SuccessModal from '../components/modal/successModal';
+import SuccessModal from '@/components/modal/successModal';
 import FailureModal from '../components/modal/FailureModal';
 
-import { addCustomer } from '../Redux/feature/addCustomerSlice'
+import { addCustomer } from '@/Redux/feature/addCustomerSlice'
 
 const PrestigeUser = () => {
 
@@ -66,6 +67,7 @@ const PrestigeUser = () => {
   const isInvalid = !firstName || !lastName || !email || !band || !phone;
 
   return (
+    <AuthGuard>
     <Layout>
       <SuccessModal
         send={send}
@@ -77,7 +79,8 @@ const PrestigeUser = () => {
         setFail={setFail}
         message='upload new customer'
       />
-      <div className="lg:py-32 lg:px-80 relative">
+      <section className='min-h-screen flex justify-center'>
+      <div className="relative min-w-[43rem] mt-10">
         <div onClick={() => router.push(`/Prestige-Customers`)} className='flex items-center justify-center mb-5 rounded-lg border border-[#D0D5DD] w-20 p-2 cursor-pointer'>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12.8332 6.99999H1.1665M1.1665 6.99999L6.99984 12.8333M1.1665 6.99999L6.99984 1.16666" stroke="#344054" strokeWidth="1.67" strokeLinecap="round" strokeLinejoin="round" />
@@ -190,7 +193,10 @@ const PrestigeUser = () => {
 
         </form>
       </div>
+      </section>
+      
     </Layout>
+    </AuthGuard>
   )
 }
 

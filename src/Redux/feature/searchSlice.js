@@ -33,10 +33,7 @@ export const searchSlice = createSlice({
   name: 'searchFile',
   initialState,
   reducers: {
-    emptySearch: (state) => {
-      state.searchResult = [];
-      state.searchRequest = '';
-    },
+    emptySearch: (state) => initialState,
     addSearchData: (state, { payload }) => {
       state.searchRequest = payload;
     },

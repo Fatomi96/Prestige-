@@ -1,15 +1,15 @@
 import { useDispatch, useSelector } from 'react-redux';
-// import { toggleModal } from '@/Redux/feature/addCustomerSlice';
+import { toggleModal } from '@/Redux/feature/addCustomerSlice';
 
 const FailureModal = ({ fail, setFail, failMsg, message }) => {
   // console.log('fail', fail);
 
-  const dispatch = useDispatch();
+  // console.log(fail)
 
   if (fail)
     return (
       <div
-        className="absolute z-[9999999] flex h-screen w-screen items-center justify-center bg-gray-700  bg-opacity-25"
+        className="fixed z-[9999999] flex h-screen w-full items-center justify-center bg-gray-700  bg-opacity-50"
         onClick={() => setFail(false)}
       >
         <div className="w-64 rounded-3xl bg-white px-7 pt-10 pb-10 text-center">
@@ -42,7 +42,7 @@ const FailureModal = ({ fail, setFail, failMsg, message }) => {
             </svg>
           </svg>
           <h4 className="font-mtnwork text-xl">Unable to {message}</h4>
-          <p className="my-2 font-mtnwork text-sm font-normal">{failMsg}</p>
+          <p className="my-2 font-mtnwork font-bold">{failMsg}</p>
         </div>
       </div>
     );

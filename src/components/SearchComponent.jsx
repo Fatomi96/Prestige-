@@ -3,14 +3,15 @@ import React, { useEffect, useState } from 'react'
 import {
   defPage,
   fetchCustomerFiles
-} from "../Redux/feature/getFileSlice";
+} from "@/Redux/feature/getFileSlice";
 import { useDispatch, useSelector } from 'react-redux';
 
 import {
   addSearchData,
   emptySearch,
   searchFiles,
-} from "../Redux/feature/searchSlice";
+} from "@/Redux/feature/searchSlice";
+import { useRouter } from 'next/router';
 
 
 function SearchComponent() {
@@ -20,10 +21,7 @@ function SearchComponent() {
   // console.log({ searchRequest })
 
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    dispatch(fetchCustomerFiles(1))
-  }, [dispatch]);
+  const router = useRouter()
 
   // const searchHandler = (e) => {
   //   if (e.target.value == '') {
@@ -44,15 +42,15 @@ function SearchComponent() {
   // }
 
   const searchHandler = (e) => {
-    if (e.target.value == '') {
-      dispatch(emptySearch());
-      dispatch(fetchCustomerFiles(1))
-    }
+       if (e.target.value == '') {
+        dispatch(emptySearch())
+     }
     dispatch(addSearchData(e.target.value));
   }
 
   const handleSearch = () => {
     if (searchRequest) {
+      router.pathname !== '/Prestige-Customers' && router.push('/Prestige-Customers')
       let payload;
       payload = {
         value: searchRequest,

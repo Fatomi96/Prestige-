@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '@/components/layout/Layout'
 import Table from '@/components/Table'
 import { useDispatch, useSelector } from 'react-redux';
-import { useRouter } from 'next/router';
+import AdmitModal from '@/components/modal/AdmitModal';
 import {
   defPage,
   fetchCustomerFiles,
@@ -11,18 +11,38 @@ import {
 } from "@/Redux/feature/getFileSlice";
 import AuthGuard from '../components/guards/AuthGuard';
 
+import {
+  addSearchData,
+  emptySearch,
+  searchFiles,
+} from "@/Redux/feature/searchSlice";
+import FailureModal from '../components/modal/FailureModal';
+import  {useRouter}  from 'next/router';
+import SuccessModal from '@/components/modal/successModal';
 
 
 export default function PrestigeCustomer() {
+
+  const dispatch = useDispatch();
+  const router = useRouter()
+
+  const searchRequest = useSelector((state) => state.search.searchRequest);
 
   const customerFiles = useSelector((state) => state.files.customerFiles?.customers);
   const totalRecords = useSelector((state) => state.files.customerFiles?.pagination?.total_records)
   const allDocData = useSelector((state) => state.files.customerFiles?.pagination);
   const page = useSelector((state) => state.files.customerFiles?.pagination?.current_page);
-
-
-  const router = useRouter();
-  const dispatch = useDispatch();
+  const [searchPopUp, setSearchPopUp] = useState(router.query.show)
+  const [successModal, setSuccessModal] = useState({
+    open:false,
+    uuid:'',
+    number: ''
+  })
+  const [fail, setFail] = useState({
+    open:false,
+    message:'',
+    fullMsg:''
+  })
 
   const nextPageHandler = () => {
     dispatch(nextPage());
@@ -34,30 +54,80 @@ export default function PrestigeCustomer() {
     dispatch(fetchCustomerFiles(page - 1));
   };
 
+
+
   useEffect(() => {
     dispatch(fetchCustomerFiles(page));
   }, [dispatch, page]);
-  useEffect(() => {
-    dispatch(defPage());
-  }, [dispatch]);
+
+  useEffect(()=>{
+    dispatch(emptySearch())
+  }, [])
+
+
+  const searchHandler = (e) => {
+    if (e.target.value == '') {
+      dispatch(emptySearch());
+      dispatch(fetchCustomerFiles(1))
+    }
+    dispatch(addSearchData(e.target.value));
+  }
+
+  const handleSearch = () => {
+    if (searchRequest) {
+      let payload;
+      payload = {
+        value: searchRequest,
+      }
+      dispatch(searchFiles(payload));
+      setSearchPopUp(false)
+    } else {
+      dispatch(defPage());
+      dispatch(emptySearch());
+      dispatch(fetchCustomerFiles(1));
+    }
+  }
+
+
 
   return (
     <AuthGuard>
+
+    <AdmitModal open={successModal.open} uuid={successModal.uuid} number={successModal.number}  setSuccessModal={setSuccessModal}/>
+    <FailureModal fail={fail.open} setFail={setFail} failMsg={fail.fullMsg} message={fail.message}/>
+
+
+        { searchPopUp && <div
+          className="absolute z-[9999999] flex h-screen w-full items-center justify-center bg-gray-700 bg-opacity-25"
+        >
+          <div className="min-w-[25rem] flex flex-col gap-3 bg-white rounded-md px-5 py-8 text-center">
+     
+            <h4 className="font-mtnwork font-bold text-start">
+             Search for a prestige customer
+            </h4>
+            <input type="text" className="text-sm border-2 p-2"  onChange={(e) => searchHandler(e)} placeholder="Enter name or phone number to search"/>
+            <button onClick={handleSearch} className='bg-[#FCCC04] p-3 font-bold rounded-md'>Search</button>
+          </div>
+        </div> }
+
+
       <Layout>
-        <div className="lg:py-24 lg:px-32 p-5">
+        <div className="lg:py-10 lg:px-12 p-5">
           <div className='flex justify-between mt-4 items-center'>
             <div className='flex items-center'>
-              <div className='font-bold text-[20px]'>Prestige Customers</div>
+              <h3 onClick={()=> dispatch(emptySearch())} className='font-bold text-[20px]'>Prestige Customers</h3>
               <div className='mx-7 bg-[#F5F5F5] py-1 px-6 rounded-lg'>{totalRecords ? totalRecords : 0}</div>
             </div>
 
             <div className="flex space-x-4">
-            <button onClick={() => router.push('/add-new-customer')} className='bg-[#FCCC04] py-2 px-8 rounded-lg shadow-md inline-flex items-center'>
-              <svg className= 'mr-2' width="11" height="16" viewBox="0 0 11 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9.83317 13H7.1665" stroke="#333333" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M8.5 14.3333V11.6667" stroke="#333333" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M5.60673 7.24668C5.54006 7.24001 5.46006 7.24001 5.38673 7.24668C3.80006 7.19334 2.54006 5.89334 2.54006 4.29334C2.5334 2.66001 3.86006 1.33334 5.4934 1.33334C7.12673 1.33334 8.4534 2.66001 8.4534 4.29334C8.4534 5.89334 7.18673 7.19334 5.60673 7.24668Z" stroke="#333333" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M5.49336 14.54C4.28003 14.54 3.07336 14.2333 2.15336 13.62C0.540026 12.54 0.540026 10.78 2.15336 9.70668C3.98669 8.48002 6.99336 8.48002 8.82669 9.70668" stroke="#333333" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+           
+
+            <button onClick={() => router.push('/add-new-customer')} className='bg-[#FCCC04] font-bold py-2 px-8 rounded-lg shadow-md inline-flex items-center'>
+              <svg className= 'mr-2' width="12" height="18" viewBox="0 0 11 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.83317 13H7.1665" stroke="#333333" stroke-width="1.2" stroke-linecap="round" strokeLinecap="round"/>
+              <path d="M8.5 14.3333V11.6667" stroke="#333333" stroke-width="1.2" stroke-linecap="round" strokeLinecap="round"/>
+              <path d="M5.60673 7.24668C5.54006 7.24001 5.46006 7.24001 5.38673 7.24668C3.80006 7.19334 2.54006 5.89334 2.54006 4.29334C2.5334 2.66001 3.86006 1.33334 5.4934 1.33334C7.12673 1.33334 8.4534 2.66001 8.4534 4.29334C8.4534 5.89334 7.18673 7.19334 5.60673 7.24668Z" stroke="#333333" stroke-width="1.2" stroke-linecap="round" strokeLinecap="round"/>
+              <path d="M5.49336 14.54C4.28003 14.54 3.07336 14.2333 2.15336 13.62C0.540026 12.54 0.540026 10.78 2.15336 9.70668C3.98669 8.48002 6.99336 8.48002 8.82669 9.70668" stroke="#333333" stroke-width="1.2" stroke-linecap="round" strokeLinecap="round"/>
               </svg>
               Add Customer
             </button>
@@ -80,6 +150,8 @@ export default function PrestigeCustomer() {
             previousPageHandler={previousPageHandler}
             pagReq={allDocData}
             typeOfTable={true}
+            setSuccessModal={setSuccessModal}
+            setFail={setFail}
           />
         </div>
       </Layout>
@@ -88,19 +160,3 @@ export default function PrestigeCustomer() {
   )
 }
 
-/* export const getServerSideProps = withSession(async function ({ req, res }) {
-  const { user } = req.session;
-
-  if (!user) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
-
-  return {
-    props: { user },
-  };
-}); */

@@ -1,15 +1,15 @@
 import Image from "next/image";
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import errorImg from "../assets/images/error.png";
+import { useEffect, useState, useRef } from "react";
+import errorImg from "@/assets/images/error.png";
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchCustomerFiles } from '../Redux/feature/getFileSlice';
-import { openModal, getDeleteId } from '../Redux/feature/deleteFileSlice';
+import { fetchCustomerFiles } from '@/Redux/feature/getFileSlice';
+import { openModal, getDeleteId } from '@/Redux/feature/deleteFileSlice';
 import NoFiles from './errors/NoFiles'
 import Error from './errors/Error'
-import SuccessModal from '../components/modal/successModal';
+import SuccessModal from '@/components/modal/successModal';
 import FailureModal from "./modal/FailureModal";
 import axios from "axios";
+import { useRouter } from "next/router";
 
 
 const Table = ({
@@ -18,21 +18,23 @@ const Table = ({
   nextPageHandler,
   previousPageHandler,
   pagReq,
-  typeOfTable = false, //show admit option?
+  setFail,
+  setSuccessModal,
+  typeOfTable = false //show admit option?
 }) => {
   const getFileStatus = useSelector((state) => state.files.status);
+  const getDateStatus = useSelector((state) => state.guestsByDate.status);
 
   const searchData = useSelector((state) => state.search.searchResult?.customers);
   const searchRequest = useSelector((state) => state.search.searchRequest);
   const searchStatus = useSelector((state) => state.search.status);
   const searchPagination = useSelector((state) => state.search.searchResult?.pagination);
   const [success, setSuccess] = useState(false);
-  const [fail, setFail] = useState(false);
-
-
-  // console.log({searchPagination})
 
   const [tableData, setTableData] = useState(data);
+
+  
+  // console.log({searchPagination})
   const [openPopup, setOpenPopup] = useState(null);
   const [showEmail, setShowEmail] = useState(false);
 
@@ -53,17 +55,25 @@ const Table = ({
 
   useEffect(() => {
     dispatch(fetchCustomerFiles());
-  }, [dispatch]);
+  }, [dispatch]); 
 
-  useEffect(() => {
-    setTableData(data);
-  }, [data])
-
-  useEffect(() => {
-    if (searchRequest?.length > 20 || searchData?.length > 0) {
-      setTableData(searchData);
+  useEffect(()=>{
+    if(searchStatus !== '' && searchRequest !== ''){
+      setTableData(searchData)
     }
-  }, [searchRequest?.length, searchData, searchData?.length]);
+    else{
+      setTableData(data)
+    }
+    
+  }, [data, searchStatus, searchRequest])
+
+  // console.log(searchData, searchStatus, searchRequest)
+
+  // useEffect(() => {
+  //   if (searchData) {
+  //     setTableData(searchData);
+  //   }
+  // }, [searchData]);
 
   const deleteHandler = (id) => {
     // if (openPopup === null) {
@@ -74,53 +84,64 @@ const Table = ({
   };
 
   const editHandler = (id) => {
-    router.push(`/${id}`)
+    router.push(`/customer/${id}`)
 
     // dispatch(getEditId(id))
 
   };
 
-  const admitCustomerHandler = (msnid) => {
-    
-
-    const url = `../api/customers/verify/${msnid}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    };
-  
-   (async ()=> {
-   
-    try {
-      const response = await axios.get(url, { headers });
-      const customer = response.data;
-
-      if(customer){
-        setSuccess(true);
-        console.log('Admited Success')
-      }
-
-      // setData(JSON.stringify(customer));
-      // setStatus(customer.success)
-      // setCustomerFName(customer.data.customer.fname)
-      // setCustomerLName(customer.data.customer.lname)
-      } catch (error) {
-        setFail(true)
-        console.log('Error faced: ' + error.message)
-        console.log('Admited Failed')
-
+  const admitCustomerHandler = async (msnid) => {
+    if(msnid[0] == 2){
+      msnid = msnid.slice(3,15)
+      msnid = '0'+ msnid
     }
-  }) ();
+    console.log (msnid)
+    const url = `../api/customers/check-in`;
 
+    const data ={
+      phoneNumber: msnid
+    }
+
+    const options ={
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(data)
+    } 
+  
+    try {
+      let response = await fetch(url, options);
+      response = await response.json()
+      
+      if(response.success){
+        setSuccessModal({
+          open: true,
+          uuid: response.data[0].uuid,
+          number: msnid
+        })
+        
+      }
+      else{
+        console.log(response)
+        setFail({
+          open:true,
+          message:'admit customer',
+         fullMsg:response.error
+        })
+      }
+     
+    }
+    catch(err){
+      console.log(err)
+      alert(err.message) 
+    }
+  
 
   };
 
 
-  
-
-
-
-  // console.log('tableData', tableData)
 
   const renderPagination = () => {
     if (
@@ -263,11 +284,10 @@ const Table = ({
   };
 
 
-
   return (
-    <div className='mt-[15px]'>
- <table className='w-full z-[9999999]'>
-        <thead className="bg-[#F6F6F6]">
+  <div className='mt-[15px]'>
+ <table className='w-full z-[999]'>
+ <thead className="bg-[#F6F6F6] z-10 sticky top-0">
           <tr className='h-11 border-b border-[#eaecf0]'>
             <th className='Work Sans normal h-[18px] w-[50px] pl-4 text-left text-[12px] font-[500] leading-[18px] text-[#667085]'>
               <input
@@ -323,7 +343,7 @@ const Table = ({
             </th>
             <th className='font-mtnwork  h-4 text-left text-xs font-medium text-[#111111]'>
               <div className="flex items-center">
-                <p className="pr-2 text-[14px] font-bold"> Last Visit </p>
+                <p className="pr-2 text-[14px] font-bold"> Date Added </p>
                 <p>
                   <svg width="10" height="10" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M1.03996 1.47469L4.29996 4.73469C4.68496 5.11969 5.31496 5.11969 5.69996 4.73469L8.95996 1.47469" stroke="#111111" strokeWidth="1.5" strokeMiterlimit="10" strokeLinecap="round" strokeLinejoin="round" />
@@ -335,7 +355,7 @@ const Table = ({
           </tr>
         </thead>
         <tbody className="mb-10 h-full  overflow-y-auto">
-          {getFileStatus === "loading" || searchStatus === "loading" ? (
+          {getFileStatus === "loading" || searchStatus === "loading" || getDateStatus === 'loading' ? (
             // loading components
             <tr>
               <td colSpan={8} className='text-center '>
@@ -405,14 +425,14 @@ const Table = ({
             //     <p className='h-10 space-y-3 rounded bg-slate-200'></p>
             //   </td>
             // </tr>
-          ) : getFileStatus === "failed" ? (
+          ) : getFileStatus === "failed" || getDateStatus === 'failed' ? (
             // error state 
             <tr>
               <td colSpan={8} className='mb-0 text-center'>
                 <Error />
               </td>
             </tr>
-          ) : data?.length === 0 &&
+          ) : tableData?.length === 0 &&
             searchData?.length < 1 &&
             searchRequest?.length < 1 ? (
             // no files returning from the backend component 
@@ -458,9 +478,15 @@ const Table = ({
                     {/* name  */}
                     <td className='text-sm font-medium leading-[20px] text-[#101828]'>
                       <div className='flex items-center'>
-                        <div title={el?.fname} className="flex items-center">
-                          <p className='text-sm font-medium lg:block pl-2 max-w-[400px]'>
-                            {el?.fname} {el?.lname}
+                        <div className="flex items-center">
+                          <p className='text-sm font-medium lg:flex gap-4 iem-center pl-2 max-w-[400px]'>
+                            {el?.fname} {el?.lname} 
+                {/* <svg onClick={(e)=>console.log(e)} title='view user companions' className= 'mr-2' width="11" height="16" viewBox="0 0 11 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.83317 13H7.1665" stroke="#333333" stroke-width="1.2" stroke-linecap="round" strokeLinecap="round"/>
+              <path d="M8.5 14.3333V11.6667" stroke="#333333" stroke-width="1.2" stroke-linecap="round" strokeLinecap="round"/>
+              <path d="M5.60673 7.24668C5.54006 7.24001 5.46006 7.24001 5.38673 7.24668C3.80006 7.19334 2.54006 5.89334 2.54006 4.29334C2.5334 2.66001 3.86006 1.33334 5.4934 1.33334C7.12673 1.33334 8.4534 2.66001 8.4534 4.29334C8.4534 5.89334 7.18673 7.19334 5.60673 7.24668Z" stroke="#333333" stroke-width="1.2" stroke-linecap="round" strokeLinecap="round"/>
+              <path d="M5.49336 14.54C4.28003 14.54 3.07336 14.2333 2.15336 13.62C0.540026 12.54 0.540026 10.78 2.15336 9.70668C3.98669 8.48002 6.99336 8.48002 8.82669 9.70668" stroke="#333333" stroke-width="1.2" stroke-linecap="round" strokeLinecap="round"/>
+              </svg> */}
                           </p>
                         </div>
                       </div>
@@ -507,7 +533,7 @@ const Table = ({
                           { typeOfTable && <p onClick={() => admitCustomerHandler(el?.telephone)} className='cursor-pointer rounded-t-lg border-gray-300 bg-lime-500 p-2 text-xs text-white'>
                             Admit User
                           </p>}
-                          <p onClick={() => editHandler(el?.uuid)} className='cursor-pointer rounded-b-xl  border-b-2 border-gray-100 p-2 text-xs hover:bg-gray-300'>
+                          <p onClick={() => editHandler(el?.uuid)} className='cursor-pointer border-b-2 border-gray-100 p-2 text-xs hover:bg-gray-300'>
                             Edit
                           </p>
                           <p onClick={() => deleteHandler(el?.uuid)} className='cursor-pointer rounded-b-xl border-gray-300 bg-red-600 p-2 text-xs text-white'>
@@ -529,6 +555,8 @@ const Table = ({
       </div>
       
     </div>
+    
+  
   );
 }
 

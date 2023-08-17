@@ -55,18 +55,18 @@ const DeleteModal = () => {
           onClick={() => dispatch(closeModal())}
         ></div>
         <div className='z-[9999] mx-4  w-[300px] rounded-xl bg-white p-10 text-center'>
-          <h3 className='text-base font-medium'>
-            Are you sure you want to delete{' '}
+          <h3 className='text-base font-semibold'>
+            Are you sure you want to delete this customer?{' '}
           </h3>
           <div className='button-group mt-6 flex justify-between'>
             <button
-              className='cursor-pointer rounded-lg border  border-gray-400 bg-white py-2 px-4 font-semibold text-gray-800 shadow hover:bg-gray-100'
+              className='cursor-pointer rounded-lg border border-gray-400 bg-white py-2 px-6 font-semibold text-gray-800 shadow hover:bg-gray-100'
               onClick={() => dispatch(closeModal())}
             >
               Cancel
             </button>
             <button
-              className={`relative flex items-center rounded-lg border-2 border-red-600 bg-red-600 px-4 py-2 font-mtnwork text-sm font-medium text-white ${loading
+              className={`relative flex items-center justify-center rounded-lg border-2 border-red-600 bg-red-600 px-7 py-2 font-mtnwork text-sm font-semibold text-white ${loading
                 ? 'cursor-not-allowed opacity-60'
                 : 'cursor-pointer opacity-100'
                 }`}
@@ -77,7 +77,7 @@ const DeleteModal = () => {
           </div>
           <p className='mt-3 text-left text-xs font-medium text-red-600 '>
             Note:
-            customer cannot be refrenced by anyone if deleted.
+            Customer cannot be refrenced by anyone if deleted.
           </p>
         </div>
         <SuccessModal

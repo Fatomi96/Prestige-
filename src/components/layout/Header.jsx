@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import SearchComponent from '../SearchComponent';
 import Image from 'next/image';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import axios from "axios"
+import {reset} from "@/Redux/feature/auth/authSlice";
 
 export default function Header() {
+  const dispatch = useDispatch()
   const router = useRouter();
   const userState = useSelector((state) => state.auth.user);
   const [userDetails, setUserDetails] = useState();
@@ -13,7 +15,7 @@ export default function Header() {
   // console.log({userDetails})
 
   useEffect(() => {
-    setUserDetails(userState?.data?.user);
+    setUserDetails(userState);
   }, [userDetails]);
   // const getAcronym = (fname, lname) => {
   //   if (fname && lname) {
@@ -37,17 +39,22 @@ export default function Header() {
     if (response) {
       const { success, data } = response.data
       console.log({ data })
+      
       if (success){
         setLogOutPop(false)
-        router.push("/auth/login")
       }
     }
+      router.push("/auth/login")
+      sessionStorage.removeItem('user')
+      dispatch(reset())
+
   };
+
 
 
   return (
     <>
-    {logOutPop && <div className="fixed p-4 w-full h-screen grid place-items-center bg-black/50 z-50">
+    {logOutPop && <div className="fixed w-full h-screen grid place-items-center bg-black/50 z-[999999]">
       <article className='rounded-xl w-full flex flex-col justify-center gap-5 text-center max-w-[18rem] bg-white p-10'> 
         <div className='mx-auto w-[40px] uppercase h-[40px] bg-[#507B96] flex items-center justify-center text-white rounded-[10px] font-bold cursor-pointer z-50'>
           {userDetails?.username && userDetails?.username.slice(0, 2)}
@@ -61,17 +68,17 @@ export default function Header() {
             </button>
       </article>
     </div> }
-      <header className="w-full bg-[#FFFFFF] fixed border-b lg:block hidden z-40">
-        <div className='flex items-center justify-between pr-10 md:flex h-[72px] relative'>
+      <header className="bg-[#FFFFFF] sticky pr-8 border-b lg:block hidden z-40">
+        <div className='flex items-center justify-between  md:flex h-[72px] relative'>
           <div>
-            <Image
+            {/* <Image
               className='w-32 md:w-40 cursor-pointer'
               src='/images/Logo.png'
               width='180'
               height='160'
               alt='Icon'
               onClick={() => router.push('/')}
-            />
+            /> */}
           </div>
           <div className=''>
             <SearchComponent />

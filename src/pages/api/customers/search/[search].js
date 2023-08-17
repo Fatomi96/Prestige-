@@ -1,12 +1,16 @@
-import { mysql, dbConfig } from "@/lib/mysql"
-import { verifyToken } from "@/lib/utilities"
+import { connectionPool } from "@/lib/mysql";
+import logger from "@/lib/logger";
+import { verifyToken } from "@/lib/utilities";
 
 export default async function handler(req, res) {
   try {
-    const connection = await mysql.createPool(dbConfig)
+    const connection = await connectionPool.getConnection();
     const auth = await verifyToken(req, res, connection)
-    if (!auth.success)
+    if (!auth.success) {
+      logger.warn(`[Authentication]: ${auth.error}`, { method: req.method, url: req.url, status: 401 });
+
       return res.status(401).json({ success: false, error: auth.error })
+    }
 
     const model = "customers"
     switch (req.method) {
@@ -14,10 +18,11 @@ export default async function handler(req, res) {
         const search = req.query.search
         let terms = []
         if (search) terms = decodeURIComponent(req.query.search).split(" ")
-        if (terms?.length === 0)
-          return res
-            .status(400)
-            .json({ success: false, error: "Search term not specified" })
+        if (terms?.length === 0) {
+          logger.warn(`[Bad Request]: Search term not specified`, { method: req.method, url: req.url, status: 400 });
+
+          return res.status(400).json({ success: false, error: "Search term not specified" })
+        }
 
         const { page, per_page } = req.query
         const _page = page ? parseInt(page) : 1
@@ -27,9 +32,10 @@ export default async function handler(req, res) {
         if (terms.length !== 2) {
           terms.map((term) => {
             query.push(
-              `uuid = ? OR  LCASE(fname) LIKE ? OR  LCASE(lname) LIKE ? OR  LCASE(telephone) LIKE ? OR  LCASE(email) LIKE ?`
-            )
-            for (let i = 0; i < 5; i++) bind.push(`%${term.toLowerCase()}%`)
+              `isDeleted = ? AND (uuid = ? OR LCASE(fname) LIKE ? OR LCASE(lname) LIKE ? OR LCASE(telephone) LIKE ? OR LCASE(email) LIKE ?)`
+            );
+            bind.push(false);
+            for (let i = 0; i < 5; i++) bind.push(`%${term.toLowerCase()}%`);
           })
         }
         let resultArr = []
@@ -40,7 +46,7 @@ export default async function handler(req, res) {
           )
         } else {
           resultArr = await connection.execute(
-            `SELECT id FROM  ${model} WHERE (LCASE(fname) LIKE ? AND LCASE(lname) LIKE ?) OR (LCASE(fname) LIKE ? AND LCASE(lname) LIKE ?)`,
+            `SELECT id FROM  ${model} WHERE (isDeleted = ?) AND (LCASE(fname) LIKE ? AND LCASE(lname) LIKE ?) OR (LCASE(fname) LIKE ? AND LCASE(lname) LIKE ?)`,
             [
               `%${terms[0].toLowerCase()}%`,
               `%${terms[1].toLowerCase()}%`,
@@ -91,6 +97,11 @@ export default async function handler(req, res) {
           prev_page_url: _prev_page ? `${path}/?page=${_prev_page}` : null,
           path: path,
         }
+
+        connection.release();
+        
+        logger.info(`[Search customers]: Search customers successful`, { method: req.method, url: req.url, status: 200 });
+
         return res.status(200).json({
           success: true,
           data: { customers, pagination },
@@ -98,11 +109,7 @@ export default async function handler(req, res) {
         })
     }
   } catch (error) {
-    return res
-      .status(400)
-      .json({ success: false, data: null, error: error.message })
+    logger.error(`[Search customers]: ${ error?.message }`, { method: req.method, url: req.url, status: 500 });
+    return res.status(500).json({ success: false, data: null, error: error.message })
   }
-  return res
-    .status(400)
-    .json({ success: false, data: null, error: "No request was recieved" })
 }

@@ -1,5 +1,5 @@
 # FROM node:16.8.0
-FROM ojtkgprepodharb01.mtn.com.ng/base-images/node16nginx22:base
+FROM ojtkgprepodharb01.mtn.com.ng/base-images/node18nginx22:base
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm install

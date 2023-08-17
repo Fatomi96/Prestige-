@@ -12,10 +12,6 @@ const nextConfig = {
             value: 'DENY',
           },
           {
-            key: 'Content-Security-Policy',
-            value: "default-src 'self';",
-          },
-          {
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains; preload',
           }

@@ -2,7 +2,7 @@ const SuccessModal = ({ send, setSend, message }) => {
   if (send)
     return (
       <div
-        className="absolute z-[9999999] flex h-screen w-screen items-center justify-center bg-gray-700  bg-opacity-25"
+        className="absolute z-[9999999] flex h-screen w-full items-center justify-center bg-gray-700  bg-opacity-25"
         onClick={() => {
           setSend(false);
           // if (addCustomer) {
@@ -12,7 +12,7 @@ const SuccessModal = ({ send, setSend, message }) => {
           // }
         }}
       >
-        <div className=" w-60 rounded-3xl bg-white px-5 py-8 text-center">
+        <div className="w-60 rounded-md bg-white px-5 py-8 text-center">
           <svg
             className="checkmark"
             xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +31,7 @@ const SuccessModal = ({ send, setSend, message }) => {
               d="M14.1 27.2l7.1 7.2 16.7-16.8"
             />
           </svg>
-          <h4 className="font-mtnwork text-xl font-medium">
+          <h4 className="font-mtnwork font-bold">
             {message} successfully
           </h4>
         </div>

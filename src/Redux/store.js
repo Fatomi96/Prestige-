@@ -7,6 +7,7 @@ import newCustomerReducer from './feature/addCustomerSlice';
 import editCustomerReducer from './feature/editCustomerSlice';
 import singleCustomerReducer from './feature/singleCustomerSlice';
 import addAdminReducer from './feature/addAdminSlice';
+import guestsByDateReducer from './feature/guestsByDateSlice'
 
 
 export const store = configureStore({
@@ -18,7 +19,8 @@ export const store = configureStore({
     deleteUser: deleteFileReducer,
     editCustomer: editCustomerReducer,
     single: singleCustomerReducer,
-    addAdmin: addAdminReducer
+    addAdmin: addAdminReducer,
+    guestsByDate: guestsByDateReducer
   },
   devTools: true,
 });

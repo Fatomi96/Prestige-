@@ -200,6 +200,88 @@
   animation: stroke 1s cubic-bezier(0.65, 0, 0.45, 1) 1s forwards;
 }
 
+
+
+.drop-down > .drop-down-option{
+  visibility: hidden;
+}
+
+.drop-down:hover >.drop-down-option {
+ visibility: visible;
+}
+
+
+.date_picker .react-calendar{
+  border: none;
+}
+
+.date_picker .react-calendar__navigation__arrow {
+  background-color: #eeeded;
+  color: #757575;
+  border-radius: 50%;
+  margin: 0 .1rem;
+}
+
+.date_picker .react-calendar__month-view__weekdays {
+text-transform: capitalize;
+}
+
+.date_picker .react-calendar__month-view__days__day--weekend {
+  color: black;
+}
+
+.date_picker abbr:where([title]) {
+text-decoration: none;
+color: #757575;
+}
+
+.start_calendar .react-calendar__month-view__days > button:nth-child(n+1):nth-child(-n+23),
+ .end_calendar .react-calendar__month-view__days > button:nth-child(n+18):nth-child(-n+42){
+  background-color: #fef2c0;
+}
+
+.date_picker .react-calendar__month-view__days {
+  gap: .2rem 0;
+}
+
+.date_picker .react-calendar__tile--now{
+  background: white;
+  color: black;
+}
+
+.date_picker .react-calendar__tile--active{
+  background: white;
+  color: black;
+}
+
+.date_picker .react-calendar__month-view__days > button{
+  border-bottom: 3px solid rgb(0,0,0,0);
+}
+
+
+.date_picker .react-calendar__tile--active:enabled:hover, .date_picker .react-calendar__tile--active:enabled:focus{
+  background: white;
+  color: black;
+}
+
+.date_picker  .react-calendar__month-view__days > button.react-calendar__tile--active{
+border-bottom: 3px solid black;
+font-weight: bold;
+}
+
+.date_picker .react-calendar__tile--hasActive{
+  background: rgb(255, 204, 4, .8);;
+}
+
+.elipsis_text{
+  max-width: 200px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+
+
 @keyframes stroke {
   100% {
     stroke-dashoffset: 0;
